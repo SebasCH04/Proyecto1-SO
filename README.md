@@ -1,7 +1,16 @@
 # Proyecto #1 de Principios de Sistemas Operativos
 
+## Introducción
 
 
+## Descripción del problema
+
+El objetivo de este proyecto es comparar el rendimiento de realizar una tarea colaborativa utilizando múltiples hilos. Para ello se desarrolló una
+versión multihilos del programa copy que permite copiar el contenido de un
+directorio completo.
+
+Se realizaron múltiples pruebas para determinar la cantidad óptima de hilos para ejecutar este tipo de tarea sobre un único directorio muy
+grande.
 
 ## Definición de estructuras de datos
 
