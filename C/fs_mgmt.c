@@ -27,7 +27,7 @@ int check_path(char *path)
 }
 
 
-int traverse_source(char *base_path){
+int traverse_source(char *base_path, char *dst_base_path, TaskQueue *q){
 
     struct dirent *dp;
     DIR *dir;
@@ -44,16 +44,27 @@ int traverse_source(char *base_path){
             continue;
         }
 
-        // Construct full path
-        char path[1024];
-        snprintf(path, sizeof(path), "%s/%s", base_path, dp->d_name);
-        printf("%s\n", path);
+        // constuir el path
+        Task new_task;
+        snprintf(new_task.source_path, PATH_MAX, "%s/%s", base_path, dp->d_name);
+        snprintf(new_task.dest_path, PATH_MAX, "%s/%s", dst_base_path, dp->d_name);
+
+        printf("dp encontrado:%s\n", dp->d_name);
+        printf("source path %s\n", new_task.source_path);
+        printf("destiny path %s\n", new_task.dest_path);
+
+        // En caso de fallar el enqueue
+        int status = enqueue(q, &new_task);
+        if(status){
+            return 1
+        }
+
+        printf("\n");
 
         // Revisar que sea directorio
         struct stat statbuf;
-        if (stat(path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
-            printf("Directory: %s\n", path);
-            traverse_source(path);
+        if (stat(new_task.source_path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
+            traverse_source(new_task.source_path, new_task.dest_path, q);
         }
 
     }

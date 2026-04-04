@@ -34,7 +34,7 @@ Finalmente dichos módulos terminan su ejecución le pasa los resultados de cada
 Tiene dos funciones principales:
 
 - Revisar que las rutas solicitadas al invocar el comando sean validas en Linux. 
-- Recorrer todo el directorio fuente por medio de Bread First Search, para así garantizar un trayecto ordenado.
+- Recorrer todo el directorio fuente por medio de Depth First Search, para así garantizar un trayecto ordenado.
 ![subdirectories](img/directories.png)
 - Crear una cola de tareas (TaskQueue), la cuál será accesada por el Thread Pool y cada subhilo desocupado tiene la posibilidad de procesar una tarea en ella.
 ![alt text](img/TaskQueue.png)
