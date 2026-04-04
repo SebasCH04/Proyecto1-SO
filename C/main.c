@@ -3,6 +3,9 @@
 #include <pthread.h>
 #include "task_queue.h"
 #include "fs_mgmt.h"
+#include "thread_pool.h"
+
+#define NUM_THREADS 4
 
 int main(int argc, char *argv[]){
 
@@ -24,25 +27,36 @@ int main(int argc, char *argv[]){
 
     // Este TaskQueue será usado por el thread_pool y por el hilo principal
     TaskQueue q;
-    init_queue(&q);
+    if (init_queue(&q) != 0) {
+        printf("Error iniciando la cola\n");
+        return 1;
+    }
 
-    /*
-     acá se debe crear el thread_pool y manderles el queue,
-     basicamente lo que deben hacer es tratar de hacer dequeue_wait, y salir una vez ya se hayan
-     terminado y se de la señal de finish_queue
-     */
+    // se crea el pool, los hilos arrancan de una vez y quedan bloqueados en dequeue_wait esperando que lleguen tareas
+    ThreadPool pool;
+    if (thread_pool_init(&pool, NUM_THREADS, &q) != 0) {
+        printf("Error iniciando el thread pool\n");
+        queue_destroy(&q);
+        return 1;
+    }
 
     // aca se empieza el recorrido del directorio y la creacion de tasks
     int r = traverse_source(source_dir, destiny_dir, &q);
     if (r){
+        finish_queue(&q);
+        thread_pool_wait(&pool);
+        thread_pool_destroy(&pool);
+        queue_destroy(&q);
         return 1;
     }
-    // Este print se quita luego
-    print_queue(&q);
 
-    // Con esto se da por finalizada la cola,
+    // avisa a los hilos que ya no van a llegar mas tasks
     finish_queue(&q);
-    // Ahora acá abajo toca hacer el wait a que los hilos terminen
+
+    // aqui espera a que todos los hilos procesen lo que queda y terminen
+    thread_pool_wait(&pool);
+    thread_pool_destroy(&pool);
+    queue_destroy(&q);
 
     return 0;
 }
