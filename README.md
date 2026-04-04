@@ -16,6 +16,7 @@ grande.
 
 - Task: Es una estructura que almacena la ubicación del source del archivo, además de su fuente.
 - TaskQueue: Representa la cola compartida de tareas listas para ser trabajadas. Guarda un Task por cada archivo en el directorio source. Utiliza un pthread_mutex_t global para controlar acceso a recursos y pthread_cond_t para notificar a los hilos dormidos cuando pueden leer la cola.
+- ThreadPool: Agrupa el arreglo de pthread_t, la cantidad de hilos activos, y un puntero a la TaskQueue compartida.
 - CompletedTask: Es una estructura que guarda los resultados de una copia realizada: El subhilo encargado, la duración, y el nombre del archivo.
 
 ## Descripción detallada y explicación de los componentes principales
@@ -42,9 +43,13 @@ Tiene 3 funciones principales:
 
 ### Módulo de Thread Pool
 
-Este modulo consiste de dos tareas:
-- Una función que inicializa el thread pool con un número fijo de hilos.
-- Una función que ejecutará cada hilo que tiene como objetivo acceder a la cola y dormirse hasta que se le notifique que puede leer. Una vez hecho esto, se encargará de hacer la copia del archivo o directorio en el directorio destino. En el proceso recolectas la siguiente información: nombre del archivo, ID del hilo, tiempo de ejecución.
+Tiene 3 funciones principales:
+
+- Una función que inicializa el thread pool con un número fijo de hilos, todos arrancan de inmediato y quedan bloqueados en dequeue_wait esperando tareas.
+- Una función worker que corre cada hilo en un loop, toma una tarea de la cola y llama a copy_file para copiarla al destino. Sale cuando la cola está vacía y marcada como terminada.
+- Una función que espera a que todos los hilos terminen con pthread_join.
+
+Los directorios destino los crea el hilo principal antes de encolar los archivos que contienen, para evitar que un worker intente copiar a una carpeta que todavía no existe y de error.
 
 ### Módulo de Logging
 ...
