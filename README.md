@@ -16,8 +16,9 @@ grande.
 
 - Task: Es una estructura que almacena la ubicación del source del archivo, además de su fuente.
 - TaskQueue: Representa la cola compartida de tareas listas para ser trabajadas. Guarda un Task por cada archivo en el directorio source. Utiliza un pthread_mutex_t global para controlar acceso a recursos y pthread_cond_t para notificar a los hilos dormidos cuando pueden leer la cola.
-- ThreadPool: Agrupa el arreglo de pthread_t, la cantidad de hilos activos, y un puntero a la TaskQueue compartida.
-- CompletedTask: Es una estructura que guarda los resultados de una copia realizada: El subhilo encargado, la duración, y el nombre del archivo.
+- ThreadPool: Agrupa el arreglo de pthread_t, la cantidad de hilos activos, un puntero a la TaskQueue compartida y una lista a la información de cada worker.
+- WorkerInfo: Es la estructura que se envía a cada uno de los workers, que recopila un puntero a la cola de tareas, una lista dinámica de CompletedTasks, el nombre asignado al worker, y dos contadores para la lista de CompletedTasks.
+- CompletedTask: Es una estructura que guarda los resultados de una copia realizada: la duración, y el nombre del archivo.
 
 ## Descripción detallada y explicación de los componentes principales
 
@@ -35,7 +36,7 @@ Finalmente una vez los hilos concluyen le pasa los resultados de cada subhilo al
 Tiene 3 funciones principales:
 
 - Revisar que las rutas solicitadas al invocar el comando sean validas en Linux. 
-- Recorrer todo el directorio fuente por medio de Depth First Search, para así garantizar un acceso ordenado.
+- Recorrer todo el directorio fuente por medio de Depth First Search, para así garantizar un acceso ordenado. Además el DFS permite crear los directorios desde el hilo principal de modo que se garantize que cada subhilo al copiar un archivo encuentre la ruta destino ya construida.
 ![subdirectories](img/directories.png)
 - Llenar la cola de tareas (TaskQueue), que será accesada por el Thread Pool. Al insertar una Task en la cola avisa con pthread_cond_signal, a un hilo que esté esperando para que así pueda tomarla y ejecutarla.
 ![alt text](img/TaskQueue.png)
@@ -47,9 +48,10 @@ Tiene 3 funciones principales:
 
 - Una función que inicializa el thread pool con un número fijo de hilos, todos arrancan de inmediato y quedan bloqueados en dequeue_wait esperando tareas.
 - Una función worker que corre cada hilo en un loop, toma una tarea de la cola y llama a copy_file para copiarla al destino. Sale cuando la cola está vacía y marcada como terminada.
-- Una función que espera a que todos los hilos terminen con pthread_join.
+- Una función que espera a que todos los hilos terminen con pthread_join, además de obtener el WorkerInfo de cada uno y retornarlo.
 
 Los directorios destino los crea el hilo principal antes de encolar los archivos que contienen, para evitar que un worker intente copiar a una carpeta que todavía no existe y de error.
 
 ### Módulo de Logging
-...
+
+Este módulo es más simple, tan solo recibe una lista de WorkerInfo desde el main, y transforma dicha información en un CSV.

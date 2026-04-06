@@ -49,12 +49,6 @@ int traverse_source(char *base_path, char *dst_base_path, TaskQueue *q){
         snprintf(new_task.source_path, PATH_MAX, "%s/%s", base_path, dp->d_name);
         snprintf(new_task.dest_path, PATH_MAX, "%s/%s", dst_base_path, dp->d_name);
 
-        printf("dp encontrado:%s\n", dp->d_name);
-        printf("source path %s\n", new_task.source_path);
-        printf("destiny path %s\n", new_task.dest_path);
-
-        printf("\n");
-
         // Revisar que sea directorio o archivo
         struct stat statbuf;
         if (stat(new_task.source_path, &statbuf) == -1) {
@@ -71,8 +65,13 @@ int traverse_source(char *base_path, char *dst_base_path, TaskQueue *q){
                 closedir(dir);
                 return 1;
             }
-            printf("[main] directorio creado: %s\n", new_task.dest_path);
-            traverse_source(new_task.source_path, new_task.dest_path, q);
+            int r = traverse_source(new_task.source_path, new_task.dest_path, q);
+            // Revisar el resultado de la recursión.
+            if (r) {
+                closedir(dir);
+                return 1;
+            }
+
         } else if (S_ISREG(statbuf.st_mode)) {
             // solo se encolan archivos para que los workers los copien
             int status = enqueue(q, &new_task);

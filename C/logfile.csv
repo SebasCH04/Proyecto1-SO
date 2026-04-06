@@ -1,0 +1,7 @@
+worker_id,file_name,exec_time
+"worker 0","../prueba/sub1/file4.txt",0.000178
+"worker 0","../prueba/sub2/file6.txt",0.000035
+"worker 1","../prueba/sub1/file3.txt",0.000162
+"worker 2","../prueba/file2.txt",0.000163
+"worker 3","../prueba/sub1/file5.txt",0.000176
+"worker 3","../prueba/file1.txt",0.000071
