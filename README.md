@@ -26,7 +26,7 @@ grande.
 
 Es el encargado de orquestrar la entrada, la creación de hilos, y el proceso de logging. Primeramente se encarga de validar que se ingresen solo dos parámetros, y luego revisa que sean rutas validas para Linux.
 
-Posteriormente le pasa la tarea al modulo de thread pool para que realize su tarea, y luego al de manejo de directorios para que revise el directorio fuente y llene la TaskQueue. Luego se queda esperando a que los hilos terminen sus tareas
+Posteriormente le pasa la tarea al modulo de thread pool para que realize su gestión, y luego al de manejo de directorios para que revise el directorio fuente y llene la TaskQueue. Luego se queda esperando a que los hilos terminen sus tareas
 
 Finalmente una vez los hilos concluyen le pasa los resultados de cada subhilo al módulo de logging para hacer un reporte en CSV de los resultados obtenidos. 
 
@@ -55,3 +55,37 @@ Los directorios destino los crea el hilo principal antes de encolar los archivos
 ### Módulo de Logging
 
 Este módulo es más simple, tan solo recibe una lista de WorkerInfo desde el main, y transforma dicha información en un CSV.
+
+## Mecanismo de creación y comunicación de hilos
+
+El proceso de creación de hilos se hizo por medio de una función llamada thread_pool_init. La cuál acepta como parámetros un struct ThreadPool, un entero con la cantidad de hilos a crear y una instancia de TaskQueue ya preparada para garantizar accesos integros.
+
+En thread_pool_init primero se asigna espacio en heap para los threads y los WorkerInfo para cada subhilo. Esta estrcuctura es de gran importancia debido que es la que permite la comunicación entre cada subhilo y el hilo principal.
+
+Posteriormente se inicializa cada uno de los hilos con su WorkerInfo y se asigna espacio para la lista de CompletedTasks que cada uno tendrá. Se decicidió hacer dicha lista dinámicamente con reallocs para así simplificar el diseño (evitar implicar usar valores alambrados o listas enlazadas). 
+
+![alt text](img/TaskQueueDesarrollado.png)
+
+
+Ahora bien, una vez el Worker inicia intentará leer de la cola de tareas y se bloquerá hasta que el hilo principal le haga un signal (cuando se adjunta una tarea a la cola), o bien cuando se termine el recorrido en el directorio fuente activará el valor done del TaskQueue para avisar a todos los hilos bloqueados que pueden finalizar su ejecución. 
+
+Durante todo el proceso los subhilos crearan registros en formato de CompletedTask con las estadísticas de cada archivo que copien y lo adjuntarán a su lista en WorkerInfo. Así que cuando el hilo principal les haga join también recuperará el contenido de cada uno de los WorkerInfo.
+
+![alt text](img/logging.png)
+
+## Pruebas de Rendimiento
+
+
+
+## Bibliografía
+- https://www.geeksforgeeks.org/c/fprintf-in-c/
+- https://pubs.opengroup.org/onlinepubs/7908799/xsh/pthread_cond_wait.html
+- https://www.geeksforgeeks.org/c/snprintf-c-library/
+- https://www.geeksforgeeks.org/c/snprintf-c-library/
+- https://stackoverflow.com/questions/65104962/how-can-i-implement-a-basic-queue-in-c
+- https://www.designgurus.io/answers/detail/how-to-recursively-list-directories-in-c-on-linux
+- https://www.w3schools.com/c/c_error_handling.php
+- https://www.w3schools.com/c/ref_string_strlen.php
+- https://www.w3schools.com/c/ref_ctype_isalnum.php
+- https://www.geeksforgeeks.org/cpp/command-line-arguments-in-c-cpp/
+- https://www.ibm.com/docs/en/zos/3.1.0?topic=functions-clock-gettime-retrieve-time-specified-clock
