@@ -94,6 +94,17 @@ Cada prueba se corrió con una cantidad diferente de hilos en el pool: 1, 2, 4, 
 |     8 |   0.010046 |              5.05x |
 |    16 |   0.007537 |              6.74x |
 
+A continuación, se muestran evidencias de las pruebas realizadas: 
+
+Resultados del benchmark:
+![alt text](img/Benchmark.png)
+
+Archivos copiados:
+![alt text](img/Archivos.png)
+
+Logfile de las pruebas:
+![alt text](img/LogFile.png)
+
 ### Análisis
 
 Los resultados muestran una mejora de rendimiento clara al aumentar la cantidad de hilos, aunque con retornos decrecientes a partir de los 4 hilos:
