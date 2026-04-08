@@ -103,6 +103,12 @@ Los resultados muestran una mejora de rendimiento clara al aumentar la cantidad 
 - De 4 a 8 hilos: la mejora es menor (12%), lo que indica que el cuello de botella empieza a trasladarse del CPU al I/O del disco.
 - De 8 a 16 hilos: continúa una mejora moderada (25%), pero el incremento en número de hilos es del doble, lo que evidencia una saturación del subsistema de disco.
 
+## Conclusiones
+
+En cuanto al rendimiento, los resultados confirman que el uso de múltiples hilos reduce significativamente el tiempo de copia frente a la ejecución secuencial. Sin embargo, esta mejora no es ilimitada: a partir de 4 hilos el speedup empieza a estabilizarse, ya que el disco se convierte en el cuello de botella y los hilos adicionales compiten por el mismo recurso en lugar de trabajar verdaderamente en paralelo. Para el entorno de prueba utilizado, 4 hilos resultaron ser el punto óptimo, ofreciendo un speedup de 4.4x sin generar overhead excesivo de sincronización.
+
+En cuanto al diseño, el uso de un pool de hilos estático combinado con una cola de tareas compartida demostró ser una arquitectura sólida y sencilla de razonar. Crear todos los hilos al inicio y reutilizarlos para múltiples archivos evita el costo de creación y destrucción de hilos en cada tarea. El uso de pthread_mutex_t y pthread_cond_t garantizó un acceso seguro a la cola sin condiciones de carrera, y la decisión de que el hilo principal cree los directorios destino antes de encolar los archivos eliminó una posible fuente de errores de sincronización entre workers.
+
 ## Bibliografía
 - https://www.geeksforgeeks.org/c/fprintf-in-c/
 - https://pubs.opengroup.org/onlinepubs/7908799/xsh/pthread_cond_wait.html
