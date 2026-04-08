@@ -96,13 +96,13 @@ Cada prueba se corrió con una cantidad diferente de hilos en el pool: 1, 2, 4, 
 
 A continuación, se muestran evidencias de las pruebas realizadas: 
 
-Resultados del benchmark:
+Resultados del benchmark:  
 ![alt text](img/Benchmark.png)
 
-Archivos copiados:
+Archivos copiados:  
 ![alt text](img/Archivos.png)
 
-Logfile de las pruebas:
+Logfile de las pruebas:  
 ![alt text](img/LogFile.png)
 
 ### Análisis
