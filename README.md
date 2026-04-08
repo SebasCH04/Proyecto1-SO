@@ -2,6 +2,9 @@
 
 ## Introducción
 
+Este proyecto implementa una versión multihilos del programa copy en lenguaje C, capaz de copiar recursivamente el contenido de un directorio completo hacia un destino. Para ello se utilizó un pool de hilos estático combinado con una cola de tareas compartida: el hilo principal recorre el directorio fuente y encola cada archivo como una tarea, mientras que un conjunto fijo de hilos trabajadores toma estas tareas y realiza las copias en paralelo.
+
+La sincronización entre hilos se maneja mediante mutex y variables de condición de la biblioteca POSIX (pthreads), garantizando acceso seguro a los recursos compartidos. Adicionalmente, el programa genera un archivo de bitácora en formato CSV con los detalles de cada copia realizada.
 
 ## Descripción del problema
 
@@ -75,7 +78,30 @@ Durante todo el proceso los subhilos crearan registros en formato de CompletedTa
 
 ## Pruebas de Rendimiento
 
+### Entorno de prueba
 
+Las pruebas se realizaron sobre un directorio generado con 200 archivos distribuidos en 4 niveles de subdirectorios, con un tamaño total de 70MB en disco. Los archivos tienen tamaños que varían entre 64KB y 1MB. Se midió el tiempo total de ejecución usando clock_gettime(CLOCK_MONOTONIC) desde que inicia el recorrido del directorio hasta que todos los hilos terminan de copiar.
+
+Cada prueba se corrió con una cantidad diferente de hilos en el pool: 1, 2, 4, 8 y 16.
+
+### Resultados
+
+| Hilos | Tiempo (s) | Speedup vs 1 hilo |
+|------:|----------:|------------------:|
+|     1 |   0.050773 |              1.00x |
+|     2 |   0.022474 |              2.26x |
+|     4 |   0.011462 |              4.43x |
+|     8 |   0.010046 |              5.05x |
+|    16 |   0.007537 |              6.74x |
+
+### Análisis
+
+Los resultados muestran una mejora de rendimiento clara al aumentar la cantidad de hilos, aunque con retornos decrecientes a partir de los 4 hilos:
+
+- De 1 a 2 hilos: la reducción del tiempo es de más del 50%, lo que refleja un uso eficiente del paralelismo.
+- De 2 a 4 hilos: el tiempo se sigue reduciendo a la mitad aproximadamente, manteniéndose un speedup casi lineal.
+- De 4 a 8 hilos: la mejora es menor (12%), lo que indica que el cuello de botella empieza a trasladarse del CPU al I/O del disco.
+- De 8 a 16 hilos: continúa una mejora moderada (25%), pero el incremento en número de hilos es del doble, lo que evidencia una saturación del subsistema de disco.
 
 ## Bibliografía
 - https://www.geeksforgeeks.org/c/fprintf-in-c/
