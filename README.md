@@ -84,6 +84,11 @@ Las pruebas se realizaron sobre un directorio generado con 200 archivos distribu
 
 Cada prueba se corrió con una cantidad diferente de hilos en el pool: 1, 2, 4, 8 y 16.
 
+Además, para la compilación del programa se utilizó la versión 15.2.1 de gcc junto al siguiente comando de compilación:
+
+``` bash
+gcc main.c fs_mgmt.c task_queue.c thread_pool.c logging.c -pthread -o cp
+```
 ### Resultados
 
 | Hilos | Tiempo (s) | Speedup vs 1 hilo |
@@ -97,7 +102,7 @@ Cada prueba se corrió con una cantidad diferente de hilos en el pool: 1, 2, 4, 
 A continuación, se muestran evidencias de las pruebas realizadas: 
 
 Resultados del benchmark:  
-![alt text](img/Benchmark.png)
+![alt text](img/graph.png)
 
 Archivos copiados:  
 ![alt text](img/Archivos.png)
